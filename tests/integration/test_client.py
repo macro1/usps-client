@@ -1,6 +1,3 @@
-from usps_client import client
-
-
 def test_zip_lookup(usps_client):
 
     [address_result] = usps_client.standardize_address(

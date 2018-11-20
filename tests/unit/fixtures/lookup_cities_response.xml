@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CityStateLookupResponse><ZipCode ID="0"><Zip5>92122</Zip5><City>SAN DIEGO</City><State>CA</State></ZipCode><ZipCode ID="0"><Error><Number>-2147219399</Number><Source>WebtoolsAMS;CityStateLookup</Source><Description>Invalid Zip Code.</Description><HelpFile/><HelpContext/></Error></ZipCode></CityStateLookupResponse>

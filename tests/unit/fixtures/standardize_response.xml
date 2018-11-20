@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<AddressValidateResponse><Address ID="1"><FirmName>USPS OFFICE OF THE CONSUMER ADVOCATE</FirmName><Address2>475 LENFANT PLZ SW RM 4012</Address2><City>WASHINGTON</City><State>DC</State><Zip5>20260</Zip5><Zip4>0004</Zip4><ReturnText>Default address: The address you entered was found but more information is needed (such as an apartment, suite, or box number) to match to a specific address.</ReturnText></Address></AddressValidateResponse>

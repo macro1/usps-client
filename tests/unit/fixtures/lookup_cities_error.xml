@@ -1,0 +1,2 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CityStateLookupResponse><ZipCode ID="0"><Error><Number>-2147219024</Number><Source>WebtoolsAMS;CityStateLookup</Source><Description>ZIPCode must be 5 characters</Description><HelpFile/><HelpContext/></Error></ZipCode></CityStateLookupResponse>

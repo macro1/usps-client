@@ -28,11 +28,19 @@ def add_sub_element(parent, name, text):
 
 
 def grouper(iterable):
-    return itertools.zip_longest(*[iter(iterable)] * 5, fillvalue=None)
+    iterable = iter(iterable)
+
+    def just_five(iterable):
+        return list(itertools.islice(iterable, 5))
+
+    while True:
+        next_group = just_five(iterable)
+        if not next_group:
+            return
+        yield next_group
 
 
 class APIException(Exception):
-
     def __init__(self, element):
         if not isinstance(element, type(etree.ElementTree())):
             element = etree.ElementTree(element)
@@ -45,23 +53,26 @@ class Client:
     BASE_URL = "https://secure.shippingapis.com/ShippingAPI.dll"
     ENCODING = "iso-8859-1"
 
-    def __init__(self, user_id):
+    def __init__(self, user_id, pool_manager=None):
         self.user_id = user_id
-
-    def __repr__(self):
-        return 'USPS Client USERID: {}'.format(self.user_id)
+        if pool_manager is None:
+            self.pool_manager = urllib3.PoolManager(
+                cert_reqs="CERT_REQUIRED", ca_certs=certifi.where()
+            )
+        else:
+            self.pool_manager = pool_manager
 
     def request(self, api, element_tree):
         # type: (str, etree.ElementTree) -> etree.ElementTree
         element_tree.getroot().set("USERID", self.user_id)
 
         xml_buffer = io.BytesIO()
-        http = urllib3.PoolManager(cert_reqs="CERT_REQUIRED", ca_certs=certifi.where())
 
         element_tree.write(xml_buffer, method="html", encoding=self.ENCODING)
-        response = http.request(
+        response = self.pool_manager.request(
             "GET", self.BASE_URL, fields={"API": api, "XML": xml_buffer.getvalue()}
         )
+        print(response.data)
 
         response_tree = etree.ElementTree()
         response_tree.parse(
@@ -105,9 +116,8 @@ class Client:
         for idx, zip_group in enumerate(grouper(zip_codes)):
             request_element = etree.Element("CityStateLookupRequest")
             for zip_code in zip_group:
-                zip_element = etree.SubElement(
-                    request_element, "ZipCode", attrib={"ID": "{}".format(idx)}
-                )
+                zip_element = etree.SubElement(request_element, "ZipCode")
+                zip_element.set("ID", "{}".format(idx))
                 zip5_element = etree.SubElement(zip_element, "Zip5")
                 zip5_element.text = zip_code
             response_document = self.request(
@@ -121,7 +131,7 @@ class Client:
                 ):
                     yield None
                     continue
-                if result_element.find("./Error"):
+                if result_element.find("./Error") is not None:
                     raise APIException(result_element)
                 yield {e.tag: e.text for e in result_element}
 
