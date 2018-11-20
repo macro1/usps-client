@@ -72,7 +72,7 @@ class Client:
         response = self.pool_manager.request(
             "GET", self.BASE_URL, fields={"API": api, "XML": xml_buffer.getvalue()}
         )
-        print(response.data)
+        self.pool_manager.clear()
 
         response_tree = etree.ElementTree()
         response_tree.parse(
@@ -80,33 +80,57 @@ class Client:
         )
         return response_tree
 
+    def standardize_addresses(self, addresses):
+        for address_group in grouper(addresses):
+            request_element = etree.Element("AddressValidateRequest")
+            for address_id, raw_address in enumerate(address_group):
+                address_element = etree.SubElement(request_element, "Address")
+                address_element.set("ID", "{}".format(address_id))
+                add_sub_element(
+                    address_element, "FirmName", raw_address.get("firm_name", "")
+                )
+                add_sub_element(
+                    address_element, "Address1", raw_address.get("address", "")
+                )
+                add_sub_element(
+                    address_element, "Address2", raw_address.get("address_2", "")
+                )
+                add_sub_element(address_element, "City", raw_address.get("city", ""))
+                add_sub_element(address_element, "State", raw_address.get("state", ""))
+                add_sub_element(address_element, "Zip5", raw_address.get("zip", ""))
+                add_sub_element(address_element, "Zip4", "")
+
+            response_tree = self.request(
+                "Verify", etree.ElementTree(request_element)
+            ).getroot()
+
+            if response_tree.tag == "AddressValidateResponse":
+                for address_result in response_tree:
+                    address = {element.tag: element.text for element in address_result}
+                    return_text = address.pop("ReturnText", None)
+                    if return_text:
+                        logger.warning(return_text)
+                    print(address)
+                    yield address
+            else:
+                raise APIException(response_tree)
+
     def standardize_address(
         self, firm_name="", address="", address_2="", city="", state="", zip=""
     ):
-        request_element = etree.Element("AddressValidateRequest")
-        address_element = etree.SubElement(request_element, "Address")
-        address_element.set("ID", "1")
-        add_sub_element(address_element, "FirmName", firm_name)
-        add_sub_element(address_element, "Address1", address)
-        add_sub_element(address_element, "Address2", address_2)
-        add_sub_element(address_element, "City", city)
-        add_sub_element(address_element, "State", state)
-        add_sub_element(address_element, "Zip5", zip)
-        add_sub_element(address_element, "Zip4", "")
-
-        response_tree = self.request(
-            "Verify", etree.ElementTree(request_element)
-        ).getroot()
-
-        if response_tree.tag == "AddressValidateResponse":
-            for address_result in response_tree:
-                address = {element.tag: element.text for element in address_result}
-                return_text = address.pop("ReturnText", None)
-                if return_text:
-                    logger.warning(return_text)
-                yield address
-            return
-        raise APIException(response_tree)
+        [standardized] = self.standardize_addresses(
+            [
+                {
+                    "firm_name": firm_name,
+                    "address": address,
+                    "address_2": address_2,
+                    "city": city,
+                    "state": state,
+                    "zip": zip,
+                }
+            ]
+        )
+        return standardized
 
     def lookup_zip_code(self):
         raise NotImplementedError

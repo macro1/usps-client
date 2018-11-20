@@ -46,4 +46,7 @@ def mock_pool_manager():
         def request(self, *args, **kwargs):
             return response.HTTPResponse(body=self.mock_response)
 
+        def clear(self):
+            pass
+
     return MockPoolManager

@@ -7,16 +7,14 @@ def test_standardization_response(standardize_response, mock_pool_manager):
     mock_pool_manager = mock_pool_manager(standardize_response)
     test_client = client.Client("123", pool_manager=mock_pool_manager)
 
-    assert list(test_client.standardize_address()) == [
-        {
-            "FirmName": "USPS OFFICE OF THE CONSUMER ADVOCATE",
-            "Address2": "475 LENFANT PLZ SW RM 4012",
-            "City": "WASHINGTON",
-            "State": "DC",
-            "Zip5": "20260",
-            "Zip4": "0004",
-        }
-    ]
+    assert test_client.standardize_address() == {
+        "FirmName": "USPS OFFICE OF THE CONSUMER ADVOCATE",
+        "Address2": "475 LENFANT PLZ SW RM 4012",
+        "City": "WASHINGTON",
+        "State": "DC",
+        "Zip5": "20260",
+        "Zip4": "0004",
+    }
 
 
 def test_standardization_exception(mock_pool_manager):
