@@ -1,1 +1,10 @@
 version: 2.1
+
+jobs:
+  build:
+    working_directory: ~/usps-client
+    docker:
+      - image: themattrix/tox
+    steps:
+      - checkout
+      - run: tox
