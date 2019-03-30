@@ -1,8 +1,11 @@
 import setuptools
 
 
-with open("README.md", "r") as fh:
+with open("README.md") as fh:
     long_description = fh.read()
+
+with open("requirements.txt") as fh:
+    install_requires = fh.read()
 
 setuptools.setup(
     name="usps-client",
@@ -15,7 +18,8 @@ setuptools.setup(
     url="https://github.com/macro1/usps-client",
     package_dir={"": "src"},
     packages=setuptools.find_packages("src"),
-    install_requires=["urllib3[secure]"],
+    data_files=[("requirements", ["requirements.txt"])],
+    install_requires=install_requires,
     classifiers=[
         "Development Status :: 3 - Alpha",
         "License :: OSI Approved :: ISC License (ISCL)",
