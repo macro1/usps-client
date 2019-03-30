@@ -1,5 +1,8 @@
 # usps-client
 
+[![CircleCI](https://img.shields.io/circleci/project/github/macro1/usps-client.svg)](https://circleci.com/gh/macro1/usps-client)
+[![Known Vulnerabilities](https://img.shields.io/snyk/vulnerabilities/github/macro1/usps-client.svg)](https://snyk.io/test/github/macro1/usps-client?targetFile=requirements.txt)
+
 Python client for the USPS Web Tools API.
 
 ## Usage
