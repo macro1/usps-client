@@ -1,16 +1,26 @@
-def test_zip_lookup(usps_client):
+from usps_client import models
+
+
+def test_standardize_address(usps_client):
 
     assert usps_client.standardize_address(
-        firm_name="USPS Office of the Consumer Advocate",
-        address="475 LENFANT PLZ SW RM 4012",
+        firmname="USPS Office of the Consumer Advocate",
+        address1="475 LENFANT PLZ SW RM 4012",
         city="Washington",
         state="DC",
-        zip="20260",
-    ) == {
-        "FirmName": "USPS OFFICE OF THE CONSUMER ADVOCATE",
-        "Address2": "475 LENFANT PLZ SW RM 4012",
-        "City": "WASHINGTON",
-        "State": "DC",
-        "Zip5": "20260",
-        "Zip4": "0004",
-    }
+        zip5="20260",
+    ) == models.Address(
+        firmname="USPS OFFICE OF THE CONSUMER ADVOCATE",
+        address2="475 LENFANT PLZ SW RM 4012",
+        city="WASHINGTON",
+        state="DC",
+        zip5="20260",
+        zip4="0004",
+    )
+
+
+def test_lookup_city(usps_client):
+
+    assert usps_client.lookup_city("20260") == models.ZipCode(
+        zip5="20260", city="WASHINGTON", state="DC"
+    )

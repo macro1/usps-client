@@ -5,26 +5,14 @@ import logging
 import certifi
 import urllib3
 
+from . import etree, models
+
 try:
     import typing
 except ImportError:
     pass
 
-try:
-    from lxml import etree
-except ImportError:
-    try:
-        import xml.etree.cElementTree as etree  # type: ignore
-    except ImportError:
-        import xml.etree.ElementTree as etree  # type: ignore
-
 logger = logging.getLogger()
-
-
-def add_sub_element(parent, name, text):
-    element = etree.SubElement(parent, name)
-    element.text = text
-    return element
 
 
 def grouper(iterable):
@@ -81,24 +69,13 @@ class Client:
         return response_tree
 
     def standardize_addresses(self, addresses):
+        # type: (typing.Iterable[models.Address]) -> typing.Iterable[models.Address]
         for address_group in grouper(addresses):
             request_element = etree.Element("AddressValidateRequest")
             for address_id, raw_address in enumerate(address_group):
-                address_element = etree.SubElement(request_element, "Address")
+                address_element = raw_address.xml()
                 address_element.set("ID", "{}".format(address_id))
-                add_sub_element(
-                    address_element, "FirmName", raw_address.get("firm_name", "")
-                )
-                add_sub_element(
-                    address_element, "Address1", raw_address.get("address", "")
-                )
-                add_sub_element(
-                    address_element, "Address2", raw_address.get("address_2", "")
-                )
-                add_sub_element(address_element, "City", raw_address.get("city", ""))
-                add_sub_element(address_element, "State", raw_address.get("state", ""))
-                add_sub_element(address_element, "Zip5", raw_address.get("zip", ""))
-                add_sub_element(address_element, "Zip4", "")
+                request_element.append(address_element)
 
             response_tree = self.request(
                 "Verify", etree.ElementTree(request_element)
@@ -106,29 +83,16 @@ class Client:
 
             if response_tree.tag == "AddressValidateResponse":
                 for address_result in response_tree:
-                    address = {element.tag: element.text for element in address_result}
-                    return_text = address.pop("ReturnText", None)
-                    if return_text:
-                        logger.warning(return_text)
+                    address = models.Address.from_xml(address_result)
                     print(address)
                     yield address
             else:
                 raise APIException(response_tree)
 
-    def standardize_address(
-        self, firm_name="", address="", address_2="", city="", state="", zip=""
-    ):
+    def standardize_address(self, **address_components):
+        # type: (**typing.Dict[str, typing.AnyStr]) -> models.Address
         [standardized] = self.standardize_addresses(
-            [
-                {
-                    "firm_name": firm_name,
-                    "address": address,
-                    "address_2": address_2,
-                    "city": city,
-                    "state": state,
-                    "zip": zip,
-                }
-            ]
+            [models.Address(**address_components)]
         )
         return standardized
 
@@ -136,14 +100,13 @@ class Client:
         raise NotImplementedError
 
     def lookup_cities(self, zip_codes):
-        # type: (typing.Iterable[str]) -> typing.Iterable[typing.Optional[dict]]
+        # type: (typing.Iterable[str]) -> typing.Iterable[typing.Optional[models.ZipCode]]
         for idx, zip_group in enumerate(grouper(zip_codes)):
             request_element = etree.Element("CityStateLookupRequest")
             for zip_code in zip_group:
-                zip_element = etree.SubElement(request_element, "ZipCode")
+                zip_element = models.ZipCode(zip5=zip_code).xml()
+                request_element.append(zip_element)
                 zip_element.set("ID", "{}".format(idx))
-                zip5_element = etree.SubElement(zip_element, "Zip5")
-                zip5_element.text = zip_code
             response_document = self.request(
                 "CityStateLookup", etree.ElementTree(request_element)
             )
@@ -157,9 +120,9 @@ class Client:
                     continue
                 if result_element.find("./Error") is not None:
                     raise APIException(result_element)
-                yield {e.tag: e.text for e in result_element}
+                yield models.ZipCode.from_xml(result_element)
 
     def lookup_city(self, zip_code):
-        # type: (str) -> typing.Optional[dict]
+        # type: (str) -> typing.Optional[models.ZipCode]
         [result] = self.lookup_cities([zip_code])
         return result
