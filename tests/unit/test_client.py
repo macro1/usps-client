@@ -8,7 +8,7 @@ def test_standardization_response(standardize_response, mock_pool_manager):
     test_client = client.Client("123", pool_manager=mock_pool_manager)
 
     assert test_client.standardize_address() == models.Address(
-        firmname="USPS OFFICE OF THE CONSUMER ADVOCATE",
+        firm_name="USPS OFFICE OF THE CONSUMER ADVOCATE",
         address2="475 LENFANT PLZ SW RM 4012",
         city="WASHINGTON",
         state="DC",

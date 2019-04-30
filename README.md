@@ -14,7 +14,7 @@ from usps_client.client import Client
 
 usps = Client('[your user id]')
 standardized = usps.standardize_address(
-    firmname="USPS Office of the Consumer Advocate",
+    firm_name="USPS Office of the Consumer Advocate",
     address1="475 LENFANT PLZ SW RM 4012",
     city="Washington",
     state="DC",

@@ -5,20 +5,22 @@ import logging
 import certifi
 import urllib3
 
-from . import etree, models
+from . import etree, models, typing
 
 try:
-    import typing
-except ImportError:
+    T = typing.TypeVar("T")
+except AttributeError:
     pass
 
 logger = logging.getLogger()
 
 
 def grouper(iterable):
+    # type: (typing.Iterable[T]) -> typing.Generator[typing.List[T], None, None]
     iterable = iter(iterable)
 
     def just_five(iterable):
+        # type: (typing.Iterable[T]) -> typing.List[T]
         return list(itertools.islice(iterable, 5))
 
     while True:
@@ -30,6 +32,7 @@ def grouper(iterable):
 
 class APIException(Exception):
     def __init__(self, element):
+        # type: (etree.Element) -> None
         if not isinstance(element, type(etree.ElementTree())):
             element = etree.ElementTree(element)
         xml_buffer = io.BytesIO()
@@ -42,6 +45,7 @@ class Client:
     ENCODING = "iso-8859-1"
 
     def __init__(self, user_id, pool_manager=None):
+        # type: (typing.Text, typing.Optional[urllib3.PoolManager]) -> None
         self.user_id = user_id
         if pool_manager is None:
             self.pool_manager = urllib3.PoolManager(
@@ -51,7 +55,7 @@ class Client:
             self.pool_manager = pool_manager
 
     def request(self, api, element_tree):
-        # type: (str, etree.ElementTree) -> etree.ElementTree
+        # type: (typing.Text, etree.ElementTree) -> etree.ElementTree
         element_tree.getroot().set("USERID", self.user_id)
 
         xml_buffer = io.BytesIO()
@@ -69,7 +73,7 @@ class Client:
         return response_tree
 
     def standardize_addresses(self, addresses):
-        # type: (typing.Iterable[models.Address]) -> typing.Iterable[models.Address]
+        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
         for address_group in grouper(addresses):
             request_element = etree.Element("AddressValidateRequest")
             for address_id, raw_address in enumerate(address_group):
@@ -90,17 +94,18 @@ class Client:
                 raise APIException(response_tree)
 
     def standardize_address(self, **address_components):
-        # type: (**typing.Dict[str, typing.AnyStr]) -> models.Address
+        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
         [standardized] = self.standardize_addresses(
             [models.Address(**address_components)]
         )
         return standardized
 
-    def lookup_zip_code(self):
+    def lookup_zip_code(self, **address_components):
+        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
         raise NotImplementedError
 
     def lookup_cities(self, zip_codes):
-        # type: (typing.Iterable[str]) -> typing.Iterable[typing.Optional[models.ZipCode]]
+        # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
         for idx, zip_group in enumerate(grouper(zip_codes)):
             request_element = etree.Element("CityStateLookupRequest")
             for zip_code in zip_group:
@@ -123,6 +128,6 @@ class Client:
                 yield models.ZipCode.from_xml(result_element)
 
     def lookup_city(self, zip_code):
-        # type: (str) -> typing.Optional[models.ZipCode]
+        # type: (typing.Text) -> typing.Optional[models.ZipCode]
         [result] = self.lookup_cities([zip_code])
         return result

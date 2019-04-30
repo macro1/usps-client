@@ -4,13 +4,13 @@ from usps_client import models
 def test_standardize_address(usps_client):
 
     assert usps_client.standardize_address(
-        firmname="USPS Office of the Consumer Advocate",
+        firm_name="USPS Office of the Consumer Advocate",
         address1="475 LENFANT PLZ SW RM 4012",
         city="Washington",
         state="DC",
         zip5="20260",
     ) == models.Address(
-        firmname="USPS OFFICE OF THE CONSUMER ADVOCATE",
+        firm_name="USPS OFFICE OF THE CONSUMER ADVOCATE",
         address2="475 LENFANT PLZ SW RM 4012",
         city="WASHINGTON",
         state="DC",
