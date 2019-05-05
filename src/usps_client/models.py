@@ -20,6 +20,10 @@ def add_sub_element(parent, name, text):
 class Base(object):
     TAG = ""  # type: typing.Text
 
+    def __init__(self, **data):
+        # type: (typing.Optional[str]) -> None
+        super().__init__()
+
     def xml(self):
         # type: () -> etree.Element
         element = etree.Element(self.TAG)

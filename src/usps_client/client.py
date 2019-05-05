@@ -9,6 +9,7 @@ from . import etree, models, typing
 
 try:
     T = typing.TypeVar("T")
+    M = typing.TypeVar("M", bound=models.Base)
 except AttributeError:
     pass
 
@@ -72,33 +73,56 @@ class Client:
         )
         return response_tree
 
-    def standardize_addresses(self, addresses):
-        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
-        for address_group in grouper(addresses):
-            request_element = etree.Element("AddressValidateRequest")
-            for address_id, raw_address in enumerate(address_group):
-                address_element = raw_address.xml()
-                address_element.set("ID", "{}".format(address_id))
-                request_element.append(address_element)
+    def query_list(self, api, model, iterable, wrapping_element=None):
+        # type: (typing.Text, typing.Type[M], typing.Iterable[M], typing.Optional[typing.Text]) -> typing.Iterable[typing.Optional[M]]
+        if wrapping_element is None:
+            wrapping_element = api
+        request_element_name = "{}Request".format(wrapping_element)
+        response_element_name = "{}Response".format(wrapping_element)
+        for request_group in grouper(iterable):
+            request_element = etree.Element(request_element_name)
+            for item_id, item_data in enumerate(request_group):
+                item_element = item_data.xml()
+                item_element.set("ID", "{}".format(item_id))
+                request_element.append(item_element)
 
             response_tree = self.request(
-                "Verify", etree.ElementTree(request_element)
+                api, etree.ElementTree(request_element)
             ).getroot()
 
-            if response_tree.tag == "AddressValidateResponse":
-                for address_result in response_tree:
-                    address = models.Address.from_xml(address_result)
-                    print(address)
-                    yield address
-            else:
+            if response_tree.tag != response_element_name:
                 raise APIException(response_tree)
+            for result_element in response_tree:
+                error_number_element = result_element.find("./Error/Number")
+                if error_number_element is not None:
+                    if (
+                        error_number_element.text == "-2147219399"
+                    ):  # No result for zipcode (such as '00000')
+                        yield None
+                    else:
+                        raise APIException(result_element)
+                else:
+                    yield model.from_xml(result_element)
+
+    def query_single(self, api, model, data, wrapping_element=None):
+        # type: (typing.Text, typing.Type[M], typing.Dict[typing.Text, typing.Optional[typing.Text]], typing.Optional[typing.Text]) -> typing.Optional[M]
+        [result] = self.query_list(api, model, [model(**data)], wrapping_element)
+        return result
+
+    def standardize_addresses(self, addresses):
+        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
+        return self.query_list(
+            "Verify", models.Address, addresses, wrapping_element="AddressValidate"
+        )
 
     def standardize_address(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        [standardized] = self.standardize_addresses(
-            [models.Address(**address_components)]
+        return self.query_single(
+            "Verify",
+            models.Address,
+            address_components,
+            wrapping_element="AddressValidate",
         )
-        return standardized
 
     def lookup_zip_code(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
@@ -106,28 +130,12 @@ class Client:
 
     def lookup_cities(self, zip_codes):
         # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
-        for idx, zip_group in enumerate(grouper(zip_codes)):
-            request_element = etree.Element("CityStateLookupRequest")
-            for zip_code in zip_group:
-                zip_element = models.ZipCode(zip5=zip_code).xml()
-                request_element.append(zip_element)
-                zip_element.set("ID", "{}".format(idx))
-            response_document = self.request(
-                "CityStateLookup", etree.ElementTree(request_element)
-            )
-            for result_element in response_document.getroot():
-                error_num_element = result_element.find("./Error/Number")
-                if (
-                    error_num_element is not None
-                    and error_num_element.text == "-2147219399"
-                ):
-                    yield None
-                    continue
-                if result_element.find("./Error") is not None:
-                    raise APIException(result_element)
-                yield models.ZipCode.from_xml(result_element)
+        return self.query_list(
+            "CityStateLookup",
+            models.ZipCode,
+            (models.ZipCode(zip5=zip_code) for zip_code in zip_codes),
+        )
 
     def lookup_city(self, zip_code):
         # type: (typing.Text) -> typing.Optional[models.ZipCode]
-        [result] = self.lookup_cities([zip_code])
-        return result
+        return self.query_single("CityStateLookup", models.ZipCode, {"zip5": zip_code})
