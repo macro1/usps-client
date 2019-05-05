@@ -37,9 +37,13 @@ class APIException(Exception):
         # type: (etree.Element) -> None
         if not isinstance(element, type(etree.ElementTree())):
             element = etree.ElementTree(element)
-        xml_buffer = io.BytesIO()
-        element.write(xml_buffer)
-        super(APIException, self).__init__(xml_buffer.getvalue())
+        try:
+            error_message = element.find("./Description").text
+        except AttributeError:
+            xml_buffer = io.BytesIO()
+            element.write(xml_buffer)
+            error_message = xml_buffer.getvalue()
+        super(APIException, self).__init__(error_message)
 
 
 class Client:
@@ -94,14 +98,18 @@ class Client:
         )
         return response_tree
 
-    def _request_list(self, api, model, iterable, wrapping_element=None):
-        # type: (typing.Text, typing.Type[M], typing.Iterable[M], typing.Optional[typing.Text]) -> typing.Iterable[typing.Optional[M]]
+    def _request_list(self, api, model, iterable, wrapping_element=None, revision=2):
+        # type: (typing.Text, typing.Type[M], typing.Iterable[models.Base], typing.Optional[typing.Text], typing.Optional[int]) -> typing.Iterable[typing.Optional[M]]
         if wrapping_element is None:
             wrapping_element = api
         request_element_name = "{}Request".format(wrapping_element)
         response_element_name = "{}Response".format(wrapping_element)
         for request_group in _grouper(iterable):
             request_element = etree.Element(request_element_name)
+            if revision:
+                revision_element = etree.Element("Revision")
+                revision_element.text = str(revision)
+                request_element.append(revision_element)
             for item_id, item_data in enumerate(request_group):
                 item_element = item_data.xml()
                 item_element.set("ID", "{}".format(item_id))
@@ -121,37 +129,61 @@ class Client:
                     ):  # No result for zipcode (such as '00000')
                         yield None
                     else:
-                        raise APIException(result_element)
+                        raise APIException(result_element.find("./Error"))
                 else:
                     yield model.from_xml(result_element)
 
-    def _request_single(self, api, model, data, wrapping_element=None):
-        # type: (typing.Text, typing.Type[M], typing.Dict[typing.Text, typing.Optional[typing.Text]], typing.Optional[typing.Text]) -> typing.Optional[M]
-        [result] = self._request_list(api, model, [model(**data)], wrapping_element)
+    def _request_single(
+        self,
+        api,
+        request_model,
+        response_model,
+        data,
+        wrapping_element=None,
+        revision=2,
+    ):
+        # type: (typing.Text, typing.Type[models.Base], typing.Type[M], typing.Dict[typing.Text, typing.Optional[typing.Text]], typing.Optional[typing.Text], typing.Optional[int]) -> typing.Optional[M]
+        [result] = self._request_list(
+            api, response_model, [request_model(**data)], wrapping_element, revision
+        )
         return result
 
+    ###
+    # Address Information
+    # https://www.usps.com/business/web-tools-apis/address-information-api.htm
+    ###
+
     def standardize_addresses(self, addresses):
-        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
+        # type: (typing.Iterable[models.RequestAddress]) -> typing.Iterable[typing.Optional[models.ResponseAddress]]
         return self._request_list(
-            "Verify", models.Address, addresses, wrapping_element="AddressValidate"
+            "Verify",
+            models.ResponseAddress,
+            addresses,
+            wrapping_element="AddressValidate",
         )
 
     def standardize_address(self, **address_components):
-        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
+        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.ResponseAddress]
         return self._request_single(
             "Verify",
-            models.Address,
+            models.RequestAddress,
+            models.ResponseAddress,
             address_components,
             wrapping_element="AddressValidate",
         )
 
     def lookup_zip_codes(self, addresses):
-        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
-        return self._request_list("ZipCodeLookup", models.Address, addresses)
+        # type: (typing.Iterable[models.RequestAddress]) -> typing.Iterable[typing.Optional[models.ResponseAddress]]
+        return self._request_list("ZipCodeLookup", models.ResponseAddress, addresses)
 
     def lookup_zip_code(self, **address_components):
-        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        return self._request_single("ZipCodeLookup", models.Address, address_components)
+        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.ResponseAddress]
+        return self._request_single(
+            "ZipCodeLookup",
+            models.RequestAddress,
+            models.ResponseAddress,
+            address_components,
+        )
 
     def lookup_cities(self, zip_codes):
         # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
@@ -164,5 +196,20 @@ class Client:
     def lookup_city(self, zip_code):
         # type: (typing.Text) -> typing.Optional[models.ZipCode]
         return self._request_single(
-            "CityStateLookup", models.ZipCode, {"zip5": zip_code}
+            "CityStateLookup", models.ZipCode, models.ZipCode, {"zip5": zip_code}
+        )
+
+    ###
+    # Rate Calculator
+    # https://www.usps.com/business/web-tools-apis/rate-calculator-api.htm
+    ###
+
+    def domestic_rates(self, packages):
+        # type: (typing.Iterable[models.RequestPackage]) -> typing.Iterable[typing.Optional[models.ResponsePackage]]
+        return self._request_list("RateV4", models.ResponsePackage, packages)
+
+    def domestic_rate(self, **package_components):
+        # type: (typing.Optional[typing.Text]) -> typing.Optional[models.ResponsePackage]
+        return self._request_single(
+            "RateV4", models.RequestPackage, models.ResponsePackage, package_components
         )
