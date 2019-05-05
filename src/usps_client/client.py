@@ -124,9 +124,19 @@ class Client:
             wrapping_element="AddressValidate",
         )
 
+    def lookup_zip_codes(self, addresses):
+        # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
+        return self.query_list(
+            "ZipCodeLookup", models.Address, addresses
+        )
+
     def lookup_zip_code(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        raise NotImplementedError
+        return self.query_single(
+            "ZipCodeLookup",
+            models.Address,
+            address_components,
+        )
 
     def lookup_cities(self, zip_codes):
         # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
