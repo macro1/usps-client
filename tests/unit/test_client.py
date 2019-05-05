@@ -41,3 +41,8 @@ def test_lookup_cities_error(lookup_cities_error, mock_pool_manager):
 
     with pytest.raises(client.APIException):
         next(test_client.lookup_cities(["abc"]))
+
+
+def test_user_agent():
+    test_client = client.Client("123")
+    assert test_client.pool_manager.headers["User-Agent"] == "usps-client"

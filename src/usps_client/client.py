@@ -50,7 +50,9 @@ class Client:
         self.user_id = user_id
         if pool_manager is None:
             self.pool_manager = urllib3.PoolManager(
-                cert_reqs="CERT_REQUIRED", ca_certs=certifi.where()
+                headers={"User-Agent": "usps-client"},
+                cert_reqs="CERT_REQUIRED",
+                ca_certs=certifi.where(),
             )
         else:
             self.pool_manager = pool_manager
@@ -126,17 +128,11 @@ class Client:
 
     def lookup_zip_codes(self, addresses):
         # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
-        return self.query_list(
-            "ZipCodeLookup", models.Address, addresses
-        )
+        return self.query_list("ZipCodeLookup", models.Address, addresses)
 
     def lookup_zip_code(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        return self.query_single(
-            "ZipCodeLookup",
-            models.Address,
-            address_components,
-        )
+        return self.query_single("ZipCodeLookup", models.Address, address_components)
 
     def lookup_cities(self, zip_codes):
         # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
