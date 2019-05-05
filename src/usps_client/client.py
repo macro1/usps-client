@@ -5,7 +5,8 @@ import logging
 import certifi
 import urllib3
 
-from . import etree, models, typing
+from . import models
+from .shims import etree, typing
 
 try:
     T = typing.TypeVar("T")
@@ -16,7 +17,7 @@ except AttributeError:
 logger = logging.getLogger()
 
 
-def grouper(iterable):
+def _grouper(iterable):
     # type: (typing.Iterable[T]) -> typing.Generator[typing.List[T], None, None]
     iterable = iter(iterable)
 
@@ -42,6 +43,24 @@ class APIException(Exception):
 
 
 class Client:
+    """
+    API client for USPS Web Tools API.
+
+    Example::
+
+        >>> usps = Client('[your user id]')
+        >>> standardized = usps.standardize_address(
+        ...     firm_name="USPS Office of the Consumer Advocate",
+        ...     address1="475 LENFANT PLZ SW RM 4012",
+        ...     city="Washington",
+        ...     state="DC",
+        ...     zip5="20260",
+        ... )
+        >>> standardized
+        Address(firm_name='USPS OFFICE OF THE CONSUMER ADVOCATE', address1=None, address2='475 LENFANT PLZ SW RM 4012', city='WASHINGTON', state='DC', zip5='20260', zip4='0004')
+
+    """
+
     BASE_URL = "https://secure.shippingapis.com/ShippingAPI.dll"
     ENCODING = "iso-8859-1"
 
@@ -57,7 +76,7 @@ class Client:
         else:
             self.pool_manager = pool_manager
 
-    def request(self, api, element_tree):
+    def _send(self, api, element_tree):
         # type: (typing.Text, etree.ElementTree) -> etree.ElementTree
         element_tree.getroot().set("USERID", self.user_id)
 
@@ -75,20 +94,20 @@ class Client:
         )
         return response_tree
 
-    def query_list(self, api, model, iterable, wrapping_element=None):
+    def _request_list(self, api, model, iterable, wrapping_element=None):
         # type: (typing.Text, typing.Type[M], typing.Iterable[M], typing.Optional[typing.Text]) -> typing.Iterable[typing.Optional[M]]
         if wrapping_element is None:
             wrapping_element = api
         request_element_name = "{}Request".format(wrapping_element)
         response_element_name = "{}Response".format(wrapping_element)
-        for request_group in grouper(iterable):
+        for request_group in _grouper(iterable):
             request_element = etree.Element(request_element_name)
             for item_id, item_data in enumerate(request_group):
                 item_element = item_data.xml()
                 item_element.set("ID", "{}".format(item_id))
                 request_element.append(item_element)
 
-            response_tree = self.request(
+            response_tree = self._send(
                 api, etree.ElementTree(request_element)
             ).getroot()
 
@@ -106,20 +125,20 @@ class Client:
                 else:
                     yield model.from_xml(result_element)
 
-    def query_single(self, api, model, data, wrapping_element=None):
+    def _request_single(self, api, model, data, wrapping_element=None):
         # type: (typing.Text, typing.Type[M], typing.Dict[typing.Text, typing.Optional[typing.Text]], typing.Optional[typing.Text]) -> typing.Optional[M]
-        [result] = self.query_list(api, model, [model(**data)], wrapping_element)
+        [result] = self._request_list(api, model, [model(**data)], wrapping_element)
         return result
 
     def standardize_addresses(self, addresses):
         # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
-        return self.query_list(
+        return self._request_list(
             "Verify", models.Address, addresses, wrapping_element="AddressValidate"
         )
 
     def standardize_address(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        return self.query_single(
+        return self._request_single(
             "Verify",
             models.Address,
             address_components,
@@ -128,15 +147,15 @@ class Client:
 
     def lookup_zip_codes(self, addresses):
         # type: (typing.Iterable[models.Address]) -> typing.Iterable[typing.Optional[models.Address]]
-        return self.query_list("ZipCodeLookup", models.Address, addresses)
+        return self._request_list("ZipCodeLookup", models.Address, addresses)
 
     def lookup_zip_code(self, **address_components):
         # type: (typing.Optional[typing.Text]) -> typing.Optional[models.Address]
-        return self.query_single("ZipCodeLookup", models.Address, address_components)
+        return self._request_single("ZipCodeLookup", models.Address, address_components)
 
     def lookup_cities(self, zip_codes):
         # type: (typing.Iterable[typing.Text]) -> typing.Iterable[typing.Optional[models.ZipCode]]
-        return self.query_list(
+        return self._request_list(
             "CityStateLookup",
             models.ZipCode,
             (models.ZipCode(zip5=zip_code) for zip_code in zip_codes),
@@ -144,4 +163,6 @@ class Client:
 
     def lookup_city(self, zip_code):
         # type: (typing.Text) -> typing.Optional[models.ZipCode]
-        return self.query_single("CityStateLookup", models.ZipCode, {"zip5": zip_code})
+        return self._request_single(
+            "CityStateLookup", models.ZipCode, {"zip5": zip_code}
+        )
