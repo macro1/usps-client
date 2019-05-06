@@ -1,4 +1,11 @@
 try:
+    from html import unescape
+except ImportError:
+    from HTMLParser import HTMLParser  # type: ignore
+
+    unescape = HTMLParser().unescape
+
+try:
     from lxml import etree
 except ImportError:
     try:
