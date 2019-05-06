@@ -40,6 +40,7 @@ class ResponseAddress(Base):
     dpv_confirmation = attr.ib(default="")  # type: typing.Optional[typing.Text]
     dpvcmra = attr.ib(default="")  # type: typing.Optional[typing.Text]
     dpv_footnotes = attr.ib(default="")  # type: typing.Optional[typing.Text]
+    dpv_false = attr.ib(default="")  # type: typing.Optional[typing.Text]
     business = attr.ib(default="")  # type: typing.Optional[typing.Text]
     central_delivery_point = attr.ib(default="")  # type: typing.Optional[typing.Text]
     vacant = attr.ib(default="")  # type: typing.Optional[typing.Text]
