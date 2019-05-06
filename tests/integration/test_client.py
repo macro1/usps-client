@@ -31,6 +31,65 @@ def test_standardize_address(usps_client):
     )
 
 
+def test_standardize_address_city_abbrev(usps_client):
+
+    assert usps_client.standardize_address(
+        address1="100 Kercheval Ave",
+        city="Grosse Pointe Farms",
+        state="MI",
+        zip5="48236",
+    ) == models.ResponseAddress(
+        firm_name="",
+        address2="100 KERCHEVAL AVE",
+        city="GROSSE POINTE FARMS",
+        city_abbreviation="GROSSE PT FRM",
+        state="MI",
+        zip5="48236",
+        zip4="3635",
+        return_text="Default address: The address you entered was found but more information is needed (such as an apartment, suite, or box number) to match to a specific address.",
+        delivery_point="99",
+        carrier_route="C026",
+        footnotes="H",
+        dpv_confirmation="D",
+        dpvcmra="N",
+        dpv_footnotes="AAN1",
+        business="N",
+        central_delivery_point="N",
+        vacant="N",
+    )
+
+
+def test_standardize_address_no_zip4(usps_client):
+
+    assert usps_client.standardize_address(
+        address1="220 main ave", city="gaylord", state="mn", zip5="44334"
+    ) == models.ResponseAddress(
+        address2="220 MAIN AVE",
+        city="GAYLORD",
+        state="MN",
+        zip5="55334",
+        zip4=None,
+        carrier_route="R777",
+        footnotes="A",
+        dpv_confirmation="Y",
+        dpvcmra="N",
+        dpv_footnotes="AABBR7",
+        business="N",
+        central_delivery_point="N",
+        vacant="N",
+    )
+
+
+def test_standardize_no_result(usps_client):
+
+    assert (
+        usps_client.standardize_address(
+            address1="202 us highway 1", city="falmouth", state="me"
+        )
+        is None
+    )
+
+
 def test_lookup_zip_code(usps_client):
 
     assert usps_client.lookup_zip_code(

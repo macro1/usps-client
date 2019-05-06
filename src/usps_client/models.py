@@ -29,6 +29,7 @@ class ResponseAddress(Base):
     address1 = attr.ib(default="")  # type: typing.Optional[typing.Text]
     address2 = attr.ib(default="")  # type: typing.Optional[typing.Text]
     city = attr.ib(default="")  # type: typing.Optional[typing.Text]
+    city_abbreviation = attr.ib(default="")  # type: typing.Optional[typing.Text]
     state = attr.ib(default="")  # type: typing.Optional[typing.Text]
     zip5 = attr.ib(default="")  # type: typing.Optional[typing.Text]
     zip4 = attr.ib(default="")  # type: typing.Optional[typing.Text]
