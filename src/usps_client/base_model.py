@@ -33,7 +33,9 @@ def deserialize_value(element, field=None):
                 else:
                     return [deserialize_value(e, field) for e in element]
         return [deserialize_value(e) for e in element]
-    return re.sub("<[^<]+?>", "", unescape(element.text))
+    return (
+        re.sub("<[^<]+?>", "", unescape(element.text)) if element.text else element.text
+    )
 
 
 class Base(object):

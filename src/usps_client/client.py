@@ -38,11 +38,14 @@ class APIException(Exception):
         if not isinstance(element, type(etree.ElementTree())):
             element = etree.ElementTree(element)
         try:
-            error_message = element.find("./Description").text
+            error_message = u"{} ({})".format(
+                element.find("./Description").text.strip(),
+                element.find("./Number").text,
+            )
         except AttributeError:
             xml_buffer = io.BytesIO()
             element.write(xml_buffer)
-            error_message = xml_buffer.getvalue()
+            error_message = xml_buffer.getvalue().decode(Client.ENCODING)
         super(APIException, self).__init__(error_message)
 
 
@@ -124,9 +127,12 @@ class Client:
             for result_element in response_tree:
                 error_number_element = result_element.find("./Error/Number")
                 if error_number_element is not None:
+                    error_number = error_number_element.text
                     if (
-                        error_number_element.text == "-2147219399"
-                    ):  # No result for zipcode (such as '00000')
+                        error_number
+                        == "-2147219399"  # No result for zipcode (such as '00000')
+                        or error_number == "-2147219401"  # No result for address
+                    ):
                         yield None
                     else:
                         raise APIException(result_element.find("./Error"))

@@ -1,6 +1,7 @@
 # Configuration file for the Sphinx documentation builder.
 
 from usps_client.version import VERSION as version
+
 release = version
 project = "usps-client"
 copyright = "2019, macro1"
