@@ -1,9 +1,11 @@
 # Configuration file for the Sphinx documentation builder.
 
+from usps_client import version
+
 project = "usps-client"
 copyright = "2019, macro1"
 author = "macro1"
-release = "0.1"
+release = version.VERSION
 
 extensions = ["sphinx.ext.autodoc", "sphinxcontrib.apidoc"]
 templates_path = ["_templates"]

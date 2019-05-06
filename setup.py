@@ -1,5 +1,10 @@
+import imp
+import os
 import setuptools
 
+version = imp.load_source(
+    "usps_client.version", os.path.sep.join(["src", "usps_client", "version.py"])
+)
 
 with open("README.md") as fh:
     long_description = fh.read()
@@ -9,7 +14,7 @@ with open("requirements.txt") as fh:
 
 setuptools.setup(
     name="usps-client",
-    version="0.1",
+    version=version.VERSION,  # type: ignore
     author="Micah Denbraver",
     author_email="macromicah@gmail.com",
     description="An unofficial client for the USPS Web Tools APIs",
