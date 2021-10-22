@@ -1,0 +1,37 @@
+[tool.mypy]
+files = "src,tests"
+disallow_any_explicit = true
+disallow_any_generics = true
+disallow_subclassing_any = true
+disallow_untyped_calls = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+
+[[tool.mypy.overrides]]
+module = "usps_client.base_model"
+disallow_any_explicit = false
+
+[[tool.mypy.overrides]]
+# Ignore libraries that are not compatible
+module = [
+    "inflection",
+    "lxml",
+    "pytest",
+    "urllib3"
+]
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+# Don't require annotations in tests
+module = [
+    "integration.*",
+    "unit.*"
+]
+disallow_untyped_defs = false
+
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "error",
+    "ignore::ImportWarning"
+]
