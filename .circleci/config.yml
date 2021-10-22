@@ -11,16 +11,18 @@ jobs:
       - image: python:<< parameters.python-version >>
     steps:
       - checkout
-      - run: pip install . pytest << parameters.deps >>
-      - run: pytest
+      - run: pip install poetry
+      - run: poetry install << parameters.deps >>
+      - run: poetry run pytest
   linting:
     docker:
       - image: python:3.10
     steps:
       - checkout
-      - run: pip install black mypy types-attrs types-certifi
-      - run: black --check
-      - run: mypy
+      - run: pip install poetry
+      - run: poetry install
+      - run: poetry run black --check
+      - run: poetry run mypy
 
 workflows:
   all-tests:
@@ -38,5 +40,5 @@ workflows:
                 - "2.7"
               deps:
                 - ""
-                - "lxml"
+                - "-E lxml"
       - linting
