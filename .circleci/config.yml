@@ -1,10 +1,42 @@
 version: 2.1
 
 jobs:
-  build:
-    working_directory: ~/usps-client
+  test:
+    parameters:
+      python-version:
+        type: string
+      deps:
+        type: string
     docker:
-      - image: themattrix/tox
+      - image: python:<< parameters.python-version >>
     steps:
       - checkout
-      - run: tox
+      - run: pip install . pytest << parameters.deps >>
+      - run: pytest
+  linting:
+    docker:
+      - image: python:3.10
+    steps:
+      - checkout
+      - run: pip install black mypy types-attrs types-certifi
+      - run: black --check
+      - run: mypy
+
+workflows:
+  all-tests:
+    jobs:
+      - test:
+          matrix:
+            parameters:
+              python-version:
+                - "3.10"
+                - "3.9"
+                - "3.8"
+                - "3.7"
+                - "3.6"
+                - "3.5"
+                - "2.7"
+              deps:
+                - ""
+                - "lxml"
+      - linting
