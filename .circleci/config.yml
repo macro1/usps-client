@@ -11,7 +11,8 @@ jobs:
       - image: python:<< parameters.python-version >>
     steps:
       - checkout
-      - run: pip install poetry
+      - run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - --version 1.1.13 && ln -s $HOME/.poetry/bin/poetry /usr/local/bin/poetry
+      - run: poetry env use << parameters.python-version >> && python -V
       - run: poetry install << parameters.deps >>
       - run: poetry run pytest
   linting:
@@ -19,7 +20,7 @@ jobs:
       - image: python:3.10
     steps:
       - checkout
-      - run: pip install poetry
+      - run: curl -sSL https://install.python-poetry.org | python - --version 1.1.13 && ln -s $HOME/.local/bin/poetry /usr/local/bin/poetry
       - run: poetry install
       - run: poetry run black --check
       - run: poetry run mypy

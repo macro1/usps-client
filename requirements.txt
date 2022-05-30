@@ -1,3 +1,0 @@
-attrs>=17
-inflection
-urllib3[secure]>=1.9,<2
