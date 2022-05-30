@@ -12,6 +12,7 @@ jobs:
     steps:
       - checkout
       - run: curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python - --version 1.1.13
+      - run: poetry env use << parameters.python-version >> && python -V
       - run: poetry install << parameters.deps >>
       - run: poetry run pytest
   linting:
