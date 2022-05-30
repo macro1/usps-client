@@ -1,26 +1,27 @@
 import re
+import typing
+from html import unescape
 
 import attr
 import inflection
 
-from .shims import etree, typing, unescape
+from .shims import etree
 
-try:
-    T = typing.TypeVar("T", bound="Base")
-except AttributeError:
-    pass
+T = typing.TypeVar("T", bound="Base")
 
 
-def add_sub_element(parent, name, text):
-    # type: (etree.Element, typing.Text, typing.Optional[typing.Text]) -> etree.Element
+def add_sub_element(
+    parent: etree.Element, name: typing.Text, text: typing.Optional[typing.Text]
+) -> etree.Element:
     element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
     return element
 
 
-def deserialize_value(element, field=None):
-    # type: (etree.Element, typing.Optional[attr.Attribute[typing.Any]]) -> typing.Any
+def deserialize_value(
+    element: etree.Element, field: typing.Optional["attr.Attribute[typing.Any]"] = None
+) -> typing.Any:
     if len(element):
         if field is not None:
             try:
@@ -40,16 +41,13 @@ def deserialize_value(element, field=None):
 
 class Base(object):
     @property
-    def TAG(self):
-        # type: () -> typing.Text
+    def TAG(self) -> typing.Text:
         raise NotImplementedError
 
-    def __init__(self, **data):
-        # type: (typing.Union[str, T, None]) -> None
+    def __init__(self, **data: typing.Union[str, T, None]) -> None:
         super().__init__()
 
-    def xml(self):
-        # type: () -> etree.Element
+    def xml(self) -> etree.Element:
         element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
@@ -62,8 +60,7 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls, xml):
-        # type: (typing.Type[T], etree.Element) -> typing.Optional[T]
+    def from_xml(cls: typing.Type[T], xml: etree.Element) -> typing.Optional[T]:
         fields = attr.fields_dict(cls)
         data = {}  # type: typing.Dict[typing.Text, typing.Union[typing.Text, T]]
         for element in xml:
