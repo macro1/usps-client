@@ -22,7 +22,7 @@ jobs:
       - checkout
       - run: curl -sSL https://install.python-poetry.org | python - --version 1.1.13 && ln -s $HOME/.local/bin/poetry /usr/local/bin/poetry
       - run: poetry install
-      - run: poetry run black --check
+      - run: poetry run black --check .
       - run: poetry run mypy
 
 workflows:
