@@ -2,6 +2,8 @@ version: 2.1
 
 jobs:
   test:
+    environment:
+      PATH: $HOME/.poetry/bin:$PATH
     parameters:
       python-version:
         type: string
@@ -16,6 +18,8 @@ jobs:
       - run: poetry install << parameters.deps >>
       - run: poetry run pytest
   linting:
+    environment:
+      PATH: $HOME/.poetry/bin:$PATH
     docker:
       - image: python:3.10
     steps:
