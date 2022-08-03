@@ -1,109 +1,107 @@
-import typing
+from typing import Text, TypeVar
 
-import attr
+from attr import define, field
 
 from .base_model import Base
 
 try:
-    T = typing.TypeVar("T", bound="Base")
+    T = TypeVar("T", bound="Base")
 except AttributeError:
     pass
 
 
-@attr.s(slots=True)
+@define
 class RequestAddress(Base):
     TAG = "Address"
-    firm_name: typing.Optional[typing.Text] = attr.ib(default="")
-    address1: typing.Optional[typing.Text] = attr.ib(default="")
-    address2: typing.Optional[typing.Text] = attr.ib(default="")
-    city: typing.Optional[typing.Text] = attr.ib(default="")
-    state: typing.Optional[typing.Text] = attr.ib(default="")
-    zip5: typing.Optional[typing.Text] = attr.ib(default="")
-    zip4: typing.Optional[typing.Text] = attr.ib(default="")
+    firm_name: Text | None = ""
+    address1: Text | None = ""
+    address2: Text | None = ""
+    city: Text | None = ""
+    state: Text | None = ""
+    zip5: Text | None = ""
+    zip4: Text | None = ""
 
 
-@attr.s(slots=True)
+@define
 class ResponseAddress(Base):
     TAG = "Address"
-    firm_name: typing.Optional[typing.Text] = attr.ib(default="")
-    address1: typing.Optional[typing.Text] = attr.ib(default="")
-    address2: typing.Optional[typing.Text] = attr.ib(default="")
-    city: typing.Optional[typing.Text] = attr.ib(default="")
-    city_abbreviation: typing.Optional[typing.Text] = attr.ib(default="")
-    state: typing.Optional[typing.Text] = attr.ib(default="")
-    zip5: typing.Optional[typing.Text] = attr.ib(default="")
-    zip4: typing.Optional[typing.Text] = attr.ib(default="")
-    return_text: typing.Optional[typing.Text] = attr.ib(default="")
-    delivery_point: typing.Optional[typing.Text] = attr.ib(default="")
-    carrier_route: typing.Optional[typing.Text] = attr.ib(default="")
-    footnotes: typing.Optional[typing.Text] = attr.ib(default="")
-    dpv_confirmation: typing.Optional[typing.Text] = attr.ib(default="")
-    dpvcmra: typing.Optional[typing.Text] = attr.ib(default="")
-    dpv_footnotes: typing.Optional[typing.Text] = attr.ib(default="")
-    dpv_false: typing.Optional[typing.Text] = attr.ib(default="")
-    business: typing.Optional[typing.Text] = attr.ib(default="")
-    central_delivery_point: typing.Optional[typing.Text] = attr.ib(default="")
-    vacant: typing.Optional[typing.Text] = attr.ib(default="")
+    firm_name: Text | None = ""
+    address1: Text | None = ""
+    address2: Text | None = ""
+    city: Text | None = ""
+    city_abbreviation: Text | None = ""
+    state: Text | None = ""
+    zip5: Text | None = ""
+    zip4: Text | None = ""
+    return_text: Text | None = ""
+    delivery_point: Text | None = ""
+    carrier_route: Text | None = ""
+    footnotes: Text | None = ""
+    dpv_confirmation: Text | None = ""
+    dpvcmra: Text | None = ""
+    dpv_footnotes: Text | None = ""
+    dpv_false: Text | None = ""
+    business: Text | None = ""
+    central_delivery_point: Text | None = ""
+    vacant: Text | None = ""
 
 
-@attr.s(slots=True)
+@define
 class ZipCode(Base):
     TAG = "ZipCode"
-    zip5: typing.Optional[typing.Text] = attr.ib(default="")
-    city: typing.Optional[typing.Text] = attr.ib(default="")
-    state: typing.Optional[typing.Text] = attr.ib(default="")
-    financenumber: typing.Optional[typing.Text] = attr.ib(default="")
-    classificationcode: typing.Optional[typing.Text] = attr.ib(default="")
+    zip5: Text | None = ""
+    city: Text | None = ""
+    state: Text | None = ""
+    financenumber: Text | None = ""
+    classificationcode: Text | None = ""
 
 
-@attr.s(slots=True)
+@define
 class SpecialService(Base):
     TAG = "SpecialService"
-    service_id: typing.Optional[typing.Text] = attr.ib(default=None)
-    service_name: typing.Optional[typing.Text] = attr.ib(default=None)
-    available: typing.Optional[typing.Text] = attr.ib(default=None)
-    price: typing.Optional[typing.Text] = attr.ib(default=None)
-    declared_value_required: typing.Optional[typing.Text] = attr.ib(default=None)
-    due_sender_required: typing.Optional[typing.Text] = attr.ib(default=None)
+    service_id: Text | None = None
+    service_name: Text | None = None
+    available: Text | None = None
+    price: Text | None = None
+    declared_value_required: Text | None = None
+    due_sender_required: Text | None = None
 
 
-@attr.s(slots=True)
+@define
 class Postage(Base):
     TAG = "Postage"
-    mail_service: typing.Optional[typing.Text] = attr.ib(default=None)
-    rate: typing.Optional[typing.Text] = attr.ib(default=None)
-    special_services: typing.List[SpecialService] = attr.ib(
+    mail_service: Text | None = None
+    rate: Text | None = None
+    special_services: list[SpecialService] = field(
         factory=list, metadata={"model": SpecialService}
     )
 
 
-@attr.s(slots=True)
+@define
 class RequestPackage(Base):
     TAG = "Package"
-    service: typing.Optional[typing.Text] = attr.ib(default=None)
-    zip_origination: typing.Optional[typing.Text] = attr.ib(default=None)
-    zip_destination: typing.Optional[typing.Text] = attr.ib(default=None)
-    pounds: typing.Optional[typing.Text] = attr.ib(default=None)
-    ounces: typing.Optional[typing.Text] = attr.ib(default=None)
-    container: typing.Optional[typing.Text] = attr.ib(default=None)
-    size: typing.Optional[typing.Text] = attr.ib(default=None)
-    width: typing.Optional[typing.Text] = attr.ib(default=None)
-    length: typing.Optional[typing.Text] = attr.ib(default=None)
-    height: typing.Optional[typing.Text] = attr.ib(default=None)
-    girth: typing.Optional[typing.Text] = attr.ib(default=None)
-    machinable: typing.Optional[typing.Text] = attr.ib(default=None)
+    service: Text | None = None
+    zip_origination: Text | None = None
+    zip_destination: Text | None = None
+    pounds: Text | None = None
+    ounces: Text | None = None
+    container: Text | None = None
+    size: Text | None = None
+    width: Text | None = None
+    length: Text | None = None
+    height: Text | None = None
+    girth: Text | None = None
+    machinable: Text | None = None
 
 
-@attr.s(slots=True)
+@define
 class ResponsePackage(Base):
     TAG = "Package"
-    zip_origination: typing.Optional[typing.Text] = attr.ib(default=None)
-    zip_destination: typing.Optional[typing.Text] = attr.ib(default=None)
-    pounds: typing.Optional[typing.Text] = attr.ib(default=None)
-    ounces: typing.Optional[typing.Text] = attr.ib(default=None)
-    container: typing.Optional[typing.Text] = attr.ib(default=None)
-    size: typing.Optional[typing.Text] = attr.ib(default=None)
-    zone: typing.Optional[typing.Text] = attr.ib(default=None)
-    postage: typing.Optional[Postage] = attr.ib(
-        default=None, metadata={"model": Postage}
-    )
+    zip_origination: Text | None = None
+    zip_destination: Text | None = None
+    pounds: Text | None = None
+    ounces: Text | None = None
+    container: Text | None = None
+    size: Text | None = None
+    zone: Text | None = None
+    postage: Postage | None = field(default=None, metadata={"model": Postage})

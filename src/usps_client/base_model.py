@@ -1,18 +1,18 @@
 import re
-import typing
 from html import unescape
+from typing import Any, Text, Type, TypeVar
 
 import attr
 import inflection
 
 from .shims import etree
 
-T = typing.TypeVar("T", bound="Base")
+T = TypeVar("T", bound="Base")
 
 
 def add_sub_element(
-    parent: etree.Element, name: typing.Text, text: typing.Optional[typing.Text]
-) -> etree.Element:
+    parent: etree._Element, name: Text, text: Text | None
+) -> etree._Element:
     element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
@@ -20,8 +20,8 @@ def add_sub_element(
 
 
 def deserialize_value(
-    element: etree.Element, field: typing.Optional["attr.Attribute[typing.Any]"] = None
-) -> typing.Any:
+    element: etree._Element, field: "attr.Attribute[Any] | None" = None
+) -> Any:
     if len(element):
         if field is not None:
             try:
@@ -41,13 +41,13 @@ def deserialize_value(
 
 class Base(object):
     @property
-    def TAG(self) -> typing.Text:
+    def TAG(self) -> Text:
         raise NotImplementedError
 
-    def __init__(self, **data: typing.Union[str, T, None]) -> None:
+    def __init__(self, **data: str | T | None) -> None:
         super().__init__()
 
-    def xml(self) -> etree.Element:
+    def xml(self) -> etree._Element:
         element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
@@ -60,9 +60,9 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: typing.Type[T], xml: etree.Element) -> typing.Optional[T]:
+    def from_xml(cls: Type[T], xml: etree._Element) -> T | None:
         fields = attr.fields_dict(cls)
-        data = {}  # type: typing.Dict[typing.Text, typing.Union[typing.Text, T]]
+        data: dict[Text, Text | T] = {}
         for element in xml:
             attribute_name = inflection.underscore(element.tag)
             data[attribute_name] = deserialize_value(element, fields[attribute_name])
