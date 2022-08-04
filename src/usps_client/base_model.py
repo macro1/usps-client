@@ -11,7 +11,7 @@ T = TypeVar("T", bound="Base")
 
 
 def add_sub_element(
-        parent: etree.Element, name: Text, text: Text | None
+    parent: etree.Element, name: Text, text: Text | None
 ) -> etree.Element:
     element = etree.SubElement(parent, name)
     if text is not None:
@@ -20,7 +20,7 @@ def add_sub_element(
 
 
 def deserialize_value(
-        element: etree.Element, field: "attr.Attribute[Any] | None" = None
+    element: etree.Element, field: "attr.Attribute[Any] | None" = None
 ) -> Any:
     if len(element):
         if field is not None:
