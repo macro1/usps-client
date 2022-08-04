@@ -1,4 +1,4 @@
-from typing import Text, TypeVar
+from typing import List, Optional, Text, TypeVar
 
 from attr import define, field
 
@@ -13,66 +13,66 @@ except AttributeError:
 @define
 class RequestAddress(Base):
     TAG = "Address"
-    firm_name: Text | None = ""
-    address1: Text | None = ""
-    address2: Text | None = ""
-    city: Text | None = ""
-    state: Text | None = ""
-    zip5: Text | None = ""
-    zip4: Text | None = ""
+    firm_name: Optional[Text] = ""
+    address1: Optional[Text] = ""
+    address2: Optional[Text] = ""
+    city: Optional[Text] = ""
+    state: Optional[Text] = ""
+    zip5: Optional[Text] = ""
+    zip4: Optional[Text] = ""
 
 
 @define
 class ResponseAddress(Base):
     TAG = "Address"
-    firm_name: Text | None = ""
-    address1: Text | None = ""
-    address2: Text | None = ""
-    city: Text | None = ""
-    city_abbreviation: Text | None = ""
-    state: Text | None = ""
-    zip5: Text | None = ""
-    zip4: Text | None = ""
-    return_text: Text | None = ""
-    delivery_point: Text | None = ""
-    carrier_route: Text | None = ""
-    footnotes: Text | None = ""
-    dpv_confirmation: Text | None = ""
-    dpvcmra: Text | None = ""
-    dpv_footnotes: Text | None = ""
-    dpv_false: Text | None = ""
-    business: Text | None = ""
-    central_delivery_point: Text | None = ""
-    vacant: Text | None = ""
+    firm_name: Optional[Text] = ""
+    address1: Optional[Text] = ""
+    address2: Optional[Text] = ""
+    city: Optional[Text] = ""
+    city_abbreviation: Optional[Text] = ""
+    state: Optional[Text] = ""
+    zip5: Optional[Text] = ""
+    zip4: Optional[Text] = ""
+    return_text: Optional[Text] = ""
+    delivery_point: Optional[Text] = ""
+    carrier_route: Optional[Text] = ""
+    footnotes: Optional[Text] = ""
+    dpv_confirmation: Optional[Text] = ""
+    dpvcmra: Optional[Text] = ""
+    dpv_footnotes: Optional[Text] = ""
+    dpv_false: Optional[Text] = ""
+    business: Optional[Text] = ""
+    central_delivery_point: Optional[Text] = ""
+    vacant: Optional[Text] = ""
 
 
 @define
 class ZipCode(Base):
     TAG = "ZipCode"
-    zip5: Text | None = ""
-    city: Text | None = ""
-    state: Text | None = ""
-    financenumber: Text | None = ""
-    classificationcode: Text | None = ""
+    zip5: Optional[Text] = ""
+    city: Optional[Text] = ""
+    state: Optional[Text] = ""
+    financenumber: Optional[Text] = ""
+    classificationcode: Optional[Text] = ""
 
 
 @define
 class SpecialService(Base):
     TAG = "SpecialService"
-    service_id: Text | None = None
-    service_name: Text | None = None
-    available: Text | None = None
-    price: Text | None = None
-    declared_value_required: Text | None = None
-    due_sender_required: Text | None = None
+    service_id: Optional[Text] = None
+    service_name: Optional[Text] = None
+    available: Optional[Text] = None
+    price: Optional[Text] = None
+    declared_value_required: Optional[Text] = None
+    due_sender_required: Optional[Text] = None
 
 
 @define
 class Postage(Base):
     TAG = "Postage"
-    mail_service: Text | None = None
-    rate: Text | None = None
-    special_services: list[SpecialService] = field(
+    mail_service: Optional[Text] = None
+    rate: Optional[Text] = None
+    special_services: List[SpecialService] = field(
         factory=list, metadata={"model": SpecialService}
     )
 
@@ -80,28 +80,28 @@ class Postage(Base):
 @define
 class RequestPackage(Base):
     TAG = "Package"
-    service: Text | None = None
-    zip_origination: Text | None = None
-    zip_destination: Text | None = None
-    pounds: Text | None = None
-    ounces: Text | None = None
-    container: Text | None = None
-    size: Text | None = None
-    width: Text | None = None
-    length: Text | None = None
-    height: Text | None = None
-    girth: Text | None = None
-    machinable: Text | None = None
+    service: Optional[Text] = None
+    zip_origination: Optional[Text] = None
+    zip_destination: Optional[Text] = None
+    pounds: Optional[Text] = None
+    ounces: Optional[Text] = None
+    container: Optional[Text] = None
+    size: Optional[Text] = None
+    width: Optional[Text] = None
+    length: Optional[Text] = None
+    height: Optional[Text] = None
+    girth: Optional[Text] = None
+    machinable: Optional[Text] = None
 
 
 @define
 class ResponsePackage(Base):
     TAG = "Package"
-    zip_origination: Text | None = None
-    zip_destination: Text | None = None
-    pounds: Text | None = None
-    ounces: Text | None = None
-    container: Text | None = None
-    size: Text | None = None
-    zone: Text | None = None
-    postage: Postage | None = field(default=None, metadata={"model": Postage})
+    zip_origination: Optional[Text] = None
+    zip_destination: Optional[Text] = None
+    pounds: Optional[Text] = None
+    ounces: Optional[Text] = None
+    container: Optional[Text] = None
+    size: Optional[Text] = None
+    zone: Optional[Text] = None
+    postage: Optional[Postage] = field(default=None, metadata={"model": Postage})

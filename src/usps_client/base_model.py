@@ -1,6 +1,6 @@
 import re
 from html import unescape
-from typing import Any, Text, Type, TypeVar
+from typing import Any, Optional, Text, Type, TypeVar, Union
 
 import attr
 import inflection
@@ -11,7 +11,7 @@ T = TypeVar("T", bound="Base")
 
 
 def add_sub_element(
-    parent: etree.Element, name: Text, text: Text | None
+    parent: etree.Element, name: Text, text: Optional[Text]
 ) -> etree.Element:
     element = etree.SubElement(parent, name)
     if text is not None:
@@ -20,7 +20,7 @@ def add_sub_element(
 
 
 def deserialize_value(
-    element: etree.Element, field: "attr.Attribute[Any] | None" = None
+    element: etree.Element, field: "Optional[attr.Attribute[Any]]" = None
 ) -> Any:
     if len(element):
         if field is not None:
@@ -44,7 +44,7 @@ class Base(object):
     def TAG(self) -> Text:
         raise NotImplementedError
 
-    def __init__(self, **data: str | T | None) -> None:
+    def __init__(self, **data: Union[str, T, None]) -> None:
         super().__init__()
 
     def xml(self) -> etree.Element:
@@ -60,9 +60,9 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: Type[T], xml: etree.Element) -> T | None:
+    def from_xml(cls: Type[T], xml: etree.Element) -> Optional[T]:
         fields = attr.fields_dict(cls)
-        data: dict[Text, Text | T] = {}
+        data: dict[Text, Union[Text, T]] = {}
         for element in xml:
             attribute_name = inflection.underscore(element.tag)
             data[attribute_name] = deserialize_value(element, fields[attribute_name])

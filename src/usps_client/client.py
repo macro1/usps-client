@@ -1,7 +1,18 @@
 import io
 import itertools
 import logging
-from typing import Generator, Iterable, Text, Type, TypeVar, cast
+from typing import (
+    Dict,
+    Generator,
+    Iterable,
+    List,
+    Optional,
+    Text,
+    Type,
+    TypeVar,
+    Union,
+    cast,
+)
 
 import certifi
 import urllib3
@@ -20,10 +31,10 @@ logger = logging.getLogger()
 
 def _grouper(
     iterable: Iterable[T],
-) -> Generator[list[T], None, None]:
+) -> Generator[List[T], None, None]:
     iterable = iter(iterable)
 
-    def just_five(iterable: Iterable[T]) -> list[T]:
+    def just_five(iterable: Iterable[T]) -> List[T]:
         return list(itertools.islice(iterable, 5))
 
     while True:
@@ -34,7 +45,7 @@ def _grouper(
 
 
 class APIException(Exception):
-    def __init__(self, element: etree.Element | etree.ElementTree | None) -> None:
+    def __init__(self, element: Union[etree.Element, etree.ElementTree, None]) -> None:
         if element is None:
             return
         if not isinstance(element, etree.ElementTree):
@@ -81,7 +92,7 @@ class Client:
     def __init__(
         self,
         user_id: Text,
-        pool_manager: urllib3.PoolManager | None = None,
+        pool_manager: Optional[urllib3.PoolManager] = None,
     ) -> None:
         self.user_id = user_id
         if pool_manager is None:
@@ -116,8 +127,8 @@ class Client:
         model: Type[M],
         iterable: Iterable[models.Base],
         wrapping_element: Text = None,
-        revision: int | None = 2,
-    ) -> Iterable[M | None]:
+        revision: Optional[int] = 2,
+    ) -> Iterable[Optional[M]]:
         if wrapping_element is None:
             wrapping_element = api
         request_element_name = "{}Request".format(wrapping_element)
@@ -159,10 +170,10 @@ class Client:
         api: Text,
         request_model: Type[models.Base],
         response_model: Type[M],
-        data: dict[Text, Text | None],
-        wrapping_element: Text | None = None,
-        revision: int | None = 2,
-    ) -> M | None:
+        data: Dict[Text, Optional[Text]],
+        wrapping_element: Optional[Text] = None,
+        revision: Optional[int] = 2,
+    ) -> Optional[M]:
         [result] = self._request_list(
             api, response_model, [request_model(**data)], wrapping_element, revision
         )
@@ -175,7 +186,7 @@ class Client:
 
     def standardize_addresses(
         self, addresses: Iterable[models.RequestAddress]
-    ) -> Iterable[models.ResponseAddress | None]:
+    ) -> Iterable[Optional[models.ResponseAddress]]:
         return self._request_list(
             "Verify",
             models.ResponseAddress,
@@ -184,8 +195,8 @@ class Client:
         )
 
     def standardize_address(
-        self, **address_components: Text | None
-    ) -> models.ResponseAddress | None:
+        self, **address_components: Optional[Text]
+    ) -> Optional[models.ResponseAddress]:
         return self._request_single(
             "Verify",
             models.RequestAddress,
@@ -196,12 +207,12 @@ class Client:
 
     def lookup_zip_codes(
         self, addresses: Iterable[models.RequestAddress]
-    ) -> Iterable[models.ResponseAddress | None]:
+    ) -> Iterable[Optional[models.ResponseAddress]]:
         return self._request_list("ZipCodeLookup", models.ResponseAddress, addresses)
 
     def lookup_zip_code(
-        self, **address_components: Text | None
-    ) -> models.ResponseAddress | None:
+        self, **address_components: Optional[Text]
+    ) -> Optional[models.ResponseAddress]:
         return self._request_single(
             "ZipCodeLookup",
             models.RequestAddress,
@@ -211,14 +222,14 @@ class Client:
 
     def lookup_cities(
         self, zip_codes: Iterable[Text]
-    ) -> Iterable[models.ZipCode | None]:
+    ) -> Iterable[Optional[models.ZipCode]]:
         return self._request_list(
             "CityStateLookup",
             models.ZipCode,
             (models.ZipCode(zip5=zip_code) for zip_code in zip_codes),
         )
 
-    def lookup_city(self, zip_code: Text) -> models.ZipCode | None:
+    def lookup_city(self, zip_code: Text) -> Optional[models.ZipCode]:
         return self._request_single(
             "CityStateLookup", models.ZipCode, models.ZipCode, {"zip5": zip_code}
         )
@@ -230,12 +241,12 @@ class Client:
 
     def domestic_rates(
         self, packages: Iterable[models.RequestPackage]
-    ) -> Iterable[models.ResponsePackage | None]:
+    ) -> Iterable[Optional[models.ResponsePackage]]:
         return self._request_list("RateV4", models.ResponsePackage, packages)
 
     def domestic_rate(
-        self, **package_components: Text | None
-    ) -> models.ResponsePackage | None:
+        self, **package_components: Optional[Text]
+    ) -> Optional[models.ResponsePackage]:
         return self._request_single(
             "RateV4", models.RequestPackage, models.ResponsePackage, package_components
         )
