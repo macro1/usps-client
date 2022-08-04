@@ -5,3 +5,8 @@ except ImportError:
         import xml.etree.cElementTree as etree  # type: ignore
     except ImportError:
         import xml.etree.ElementTree as etree  # type: ignore
+    Element = etree.Element
+    ElementTree = etree.ElementTree
+else:
+    Element = etree._Element
+    ElementTree = etree._ElementTree

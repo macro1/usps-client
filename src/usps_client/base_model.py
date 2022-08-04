@@ -5,14 +5,12 @@ from typing import Any, Optional, Text, Type, TypeVar, Union
 import attr
 import inflection
 
-from .shims import etree
+from .shims import Element, etree
 
 T = TypeVar("T", bound="Base")
 
 
-def add_sub_element(
-    parent: etree.Element, name: Text, text: Optional[Text]
-) -> etree.Element:
+def add_sub_element(parent: Element, name: Text, text: Optional[Text]) -> Element:
     element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
@@ -20,7 +18,7 @@ def add_sub_element(
 
 
 def deserialize_value(
-    element: etree.Element, field: "Optional[attr.Attribute[Any]]" = None
+    element: Element, field: "Optional[attr.Attribute[Any]]" = None
 ) -> Any:
     if len(element):
         if field is not None:
@@ -47,7 +45,7 @@ class Base(object):
     def __init__(self, **data: Union[str, T, None]) -> None:
         super().__init__()
 
-    def xml(self) -> etree.Element:
+    def xml(self) -> Element:
         element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
@@ -60,7 +58,7 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: Type[T], xml: etree.Element) -> Optional[T]:
+    def from_xml(cls: Type[T], xml: Element) -> Optional[T]:
         fields = attr.fields_dict(cls)
         data: dict[Text, Union[Text, T]] = {}
         for element in xml:

@@ -18,7 +18,7 @@ import certifi
 import urllib3
 
 from . import models
-from .shims import etree
+from .shims import Element, ElementTree, etree
 
 try:
     T = TypeVar("T")
@@ -45,11 +45,11 @@ def _grouper(
 
 
 class APIException(Exception):
-    def __init__(self, element: Union[etree.Element, etree.ElementTree, None]) -> None:
+    def __init__(self, element: Union[Element, ElementTree, None]) -> None:
         if element is None:
             return
-        if not isinstance(element, etree.ElementTree):
-            element = etree.ElementTree(cast(etree.Element, element))
+        if not isinstance(element, ElementTree):
+            element = etree.ElementTree(cast(Element, element))
         description_elem = element.find("./Description")
         number_elem = element.find("./Number")
         if description_elem is None or number_elem is None:
@@ -104,7 +104,7 @@ class Client:
         else:
             self.pool_manager = pool_manager
 
-    def _send(self, api: Text, element_tree: etree.ElementTree) -> etree.ElementTree:
+    def _send(self, api: Text, element_tree: ElementTree) -> ElementTree:
         element_tree.getroot().set("USERID", self.user_id)
 
         xml_buffer = io.BytesIO()
