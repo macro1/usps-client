@@ -1,27 +1,30 @@
 import re
-import typing
 from html import unescape
+from typing import TYPE_CHECKING
 
 import attr
 import inflection
 
 from .shims import etree
 
-T = typing.TypeVar("T", bound="Base")
+if TYPE_CHECKING:
+    from typing import Any, Dict, Optional, Type, TypeVar, Union
+
+    from .shims import Element
+
+    T = TypeVar("T", bound="Base")
 
 
-def add_sub_element(
-    parent: etree.Element, name: typing.Text, text: typing.Optional[typing.Text]
-) -> etree.Element:
-    element = etree.SubElement(parent, name)
+def add_sub_element(parent: "Element", name: str, text: "Optional[str]") -> "Element":
+    element: Element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
     return element
 
 
 def deserialize_value(
-    element: etree.Element, field: typing.Optional["attr.Attribute[typing.Any]"] = None
-) -> typing.Any:
+    element: "Element", field: "Optional[attr.Attribute[Any]]" = None
+) -> "Any":
     if len(element):
         if field is not None:
             try:
@@ -41,14 +44,14 @@ def deserialize_value(
 
 class Base(object):
     @property
-    def TAG(self) -> typing.Text:
+    def TAG(self) -> str:
         raise NotImplementedError
 
-    def __init__(self, **data: typing.Union[str, T, None]) -> None:
+    def __init__(self, **data: "Union[str, T, None]") -> None:
         super().__init__()
 
-    def xml(self) -> etree.Element:
-        element = etree.Element(self.TAG)
+    def xml(self) -> "Element":
+        element: Element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
             value = getattr(self, field_name)
@@ -60,9 +63,9 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: typing.Type[T], xml: etree.Element) -> typing.Optional[T]:
+    def from_xml(cls: "Type[T]", xml: "Element") -> "Optional[T]":
         fields = attr.fields_dict(cls)
-        data = {}  # type: typing.Dict[typing.Text, typing.Union[typing.Text, T]]
+        data: "Dict[str, Union[str, T]]" = {}
         for element in xml:
             attribute_name = inflection.underscore(element.tag)
             data[attribute_name] = deserialize_value(element, fields[attribute_name])
