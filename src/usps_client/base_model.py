@@ -1,16 +1,21 @@
 import re
 from html import unescape
-from typing import Any, Optional, Text, Type, TypeVar, Union
+from typing import TYPE_CHECKING
 
 import attr
 import inflection
 
-from .shims import Element, etree
+from .shims import etree
 
-T = TypeVar("T", bound="Base")
+if TYPE_CHECKING:
+    from typing import Any, Dict, Optional, Type, TypeVar, Union
+
+    from .shims import Element
+
+    T = TypeVar("T", bound="Base")
 
 
-def add_sub_element(parent: Element, name: Text, text: Optional[Text]) -> Element:
+def add_sub_element(parent: "Element", name: str, text: "Optional[str]") -> "Element":
     element: Element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
@@ -18,8 +23,8 @@ def add_sub_element(parent: Element, name: Text, text: Optional[Text]) -> Elemen
 
 
 def deserialize_value(
-    element: Element, field: "Optional[attr.Attribute[Any]]" = None
-) -> Any:
+    element: "Element", field: "Optional[attr.Attribute[Any]]" = None
+) -> "Any":
     if len(element):
         if field is not None:
             try:
@@ -39,13 +44,13 @@ def deserialize_value(
 
 class Base(object):
     @property
-    def TAG(self) -> Text:
+    def TAG(self) -> str:
         raise NotImplementedError
 
-    def __init__(self, **data: Union[str, T, None]) -> None:
+    def __init__(self, **data: "Union[str, T, None]") -> None:
         super().__init__()
 
-    def xml(self) -> Element:
+    def xml(self) -> "Element":
         element: Element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
@@ -58,9 +63,9 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: Type[T], xml: Element) -> Optional[T]:
+    def from_xml(cls: "Type[T]", xml: "Element") -> "Optional[T]":
         fields = attr.fields_dict(cls)
-        data: dict[Text, Union[Text, T]] = {}
+        data: "Dict[str, Union[str, T]]" = {}
         for element in xml:
             attribute_name = inflection.underscore(element.tag)
             data[attribute_name] = deserialize_value(element, fields[attribute_name])
