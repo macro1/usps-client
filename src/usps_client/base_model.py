@@ -11,8 +11,8 @@ T = TypeVar("T", bound="Base")
 
 
 def add_sub_element(
-    parent: etree._Element, name: Text, text: Text | None
-) -> etree._Element:
+        parent: etree.Element, name: Text, text: Text | None
+) -> etree.Element:
     element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
@@ -20,7 +20,7 @@ def add_sub_element(
 
 
 def deserialize_value(
-    element: etree._Element, field: "attr.Attribute[Any] | None" = None
+        element: etree.Element, field: "attr.Attribute[Any] | None" = None
 ) -> Any:
     if len(element):
         if field is not None:
@@ -47,7 +47,7 @@ class Base(object):
     def __init__(self, **data: str | T | None) -> None:
         super().__init__()
 
-    def xml(self) -> etree._Element:
+    def xml(self) -> etree.Element:
         element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
@@ -60,7 +60,7 @@ class Base(object):
         return element
 
     @classmethod
-    def from_xml(cls: Type[T], xml: etree._Element) -> T | None:
+    def from_xml(cls: Type[T], xml: etree.Element) -> T | None:
         fields = attr.fields_dict(cls)
         data: dict[Text, Text | T] = {}
         for element in xml:

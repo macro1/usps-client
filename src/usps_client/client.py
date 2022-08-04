@@ -34,11 +34,11 @@ def _grouper(
 
 
 class APIException(Exception):
-    def __init__(self, element: etree._Element | etree._ElementTree | None) -> None:
+    def __init__(self, element: etree.Element | etree.ElementTree | None) -> None:
         if element is None:
             return
-        if not isinstance(element, etree._ElementTree):
-            element = etree.ElementTree(cast(etree._Element, element))
+        if not isinstance(element, etree.ElementTree):
+            element = etree.ElementTree(cast(etree.Element, element))
         description_elem = element.find("./Description")
         number_elem = element.find("./Number")
         if description_elem is None or number_elem is None:
@@ -93,7 +93,7 @@ class Client:
         else:
             self.pool_manager = pool_manager
 
-    def _send(self, api: Text, element_tree: etree._ElementTree) -> etree._ElementTree:
+    def _send(self, api: Text, element_tree: etree.ElementTree) -> etree.ElementTree:
         element_tree.getroot().set("USERID", self.user_id)
 
         xml_buffer = io.BytesIO()
