@@ -1,12 +1,30 @@
+from types import ModuleType
+from typing import Type, TypeVar
+
+etree: ModuleType
 try:
-    from lxml import etree
+    from lxml import etree as lxml_etree
 except ImportError:
     try:
-        import xml.etree.cElementTree as etree  # type: ignore
+        from xml.etree import cElementTree as stdlib_cElementTree
     except ImportError:
-        import xml.etree.ElementTree as etree  # type: ignore
-    Element = etree.Element
-    ElementTree = etree.ElementTree
+        from xml.etree import ElementTree as stdlib_ElementTree
+
+        etree = stdlib_ElementTree
+    else:
+        etree = stdlib_cElementTree
 else:
-    Element = etree._Element
-    ElementTree = etree._ElementTree
+    etree = lxml_etree
+
+Element = TypeVar(
+    "Element",
+    lxml_etree._Element,
+    stdlib_cElementTree.Element,
+    stdlib_ElementTree.Element,
+)
+ElementTree = TypeVar(
+    "ElementTree",
+    lxml_etree._ElementTree,
+    stdlib_cElementTree.ElementTree,
+    stdlib_ElementTree.ElementTree,
+)

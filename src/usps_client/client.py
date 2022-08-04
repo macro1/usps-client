@@ -47,14 +47,18 @@ def _grouper(
 class APIException(Exception):
     def __init__(self, element: Union[Element, ElementTree, None]) -> None:
         if element is None:
+            pass
+        else:
             return
-        if not isinstance(element, ElementTree):
-            element = etree.ElementTree(cast(Element, element))
-        description_elem = element.find("./Description")
-        number_elem = element.find("./Number")
+        if not isinstance(element, type(etree.ElementTree())):
+            element_tree = etree.ElementTree(cast(Element, element))
+        else:
+            element_tree = cast(ElementTree, element)
+        description_elem = element_tree.find("./Description")
+        number_elem = element_tree.find("./Number")
         if description_elem is None or number_elem is None:
             xml_buffer = io.BytesIO()
-            element.write(xml_buffer)
+            element_tree.write(xml_buffer)
             error_message = xml_buffer.getvalue().decode(Client.ENCODING)
         else:
             description_text = description_elem.text
