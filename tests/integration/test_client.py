@@ -1,3 +1,4 @@
+# coding=utf-8
 from __future__ import unicode_literals
 
 from usps_client import models
@@ -141,9 +142,9 @@ def test_domestic_rate(usps_client):
         ounces="1.23",
         container="VARIABLE",
         size=None,
-        zone="3",
+        zone="4",
         postage=models.Postage(
-            mail_service="Priority Mail 2-Day\u2122",
+            mail_service="Priority Mail®",
             rate=None,
             special_services=None,
         ),
