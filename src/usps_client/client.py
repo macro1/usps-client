@@ -17,12 +17,12 @@ from typing import (
 import certifi
 import urllib3
 
-from . import models
+from . import base_model, models
 from .shims import Element, ElementTree, etree
 
 try:
     T = TypeVar("T")
-    M = TypeVar("M", bound=models.Base)
+    M = TypeVar("M", bound=base_model.Base)
 except AttributeError:
     pass
 
@@ -119,7 +119,7 @@ class Client:
         )
         self.pool_manager.clear()
 
-        response_tree = etree.ElementTree()
+        response_tree: ElementTree = etree.ElementTree()
         response_tree.parse(
             io.BytesIO(response.data), etree.XMLParser(encoding=self.ENCODING)
         )
@@ -129,8 +129,8 @@ class Client:
         self,
         api: Text,
         model: Type[M],
-        iterable: Iterable[models.Base],
-        wrapping_element: Text = None,
+        iterable: Iterable[base_model.Base],
+        wrapping_element: Optional[Text] = None,
         revision: Optional[int] = 2,
     ) -> Iterable[Optional[M]]:
         if wrapping_element is None:
@@ -172,7 +172,7 @@ class Client:
     def _request_single(
         self,
         api: Text,
-        request_model: Type[models.Base],
+        request_model: Type[base_model.Base],
         response_model: Type[M],
         data: Dict[Text, Optional[Text]],
         wrapping_element: Optional[Text] = None,

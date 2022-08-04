@@ -11,7 +11,7 @@ T = TypeVar("T", bound="Base")
 
 
 def add_sub_element(parent: Element, name: Text, text: Optional[Text]) -> Element:
-    element = etree.SubElement(parent, name)
+    element: Element = etree.SubElement(parent, name)
     if text is not None:
         element.text = text
     return element
@@ -46,7 +46,7 @@ class Base(object):
         super().__init__()
 
     def xml(self) -> Element:
-        element = etree.Element(self.TAG)
+        element: Element = etree.Element(self.TAG)
         for field in attr.fields(type(self)):
             field_name = field.name
             value = getattr(self, field_name)

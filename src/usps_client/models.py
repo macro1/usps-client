@@ -1,4 +1,4 @@
-from typing import List, Optional, Text, TypeVar
+from typing import List, Optional, Text, TypeVar, cast
 
 from attr import define, field
 
@@ -72,8 +72,9 @@ class Postage(Base):
     TAG = "Postage"
     mail_service: Optional[Text] = None
     rate: Optional[Text] = None
-    special_services: List[SpecialService] = field(
-        factory=list, metadata={"model": SpecialService}
+    special_services: Optional[List[SpecialService]] = cast(
+        Optional[List[SpecialService]],
+        field(factory=list, metadata={"model": SpecialService}),
     )
 
 
